@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Core profile data for personalization",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "age": { "type": "integer" },
+        "gender": { "type": "string" },
+        "heightCm": { "type": "number" },
+        "weightKg": { "type": "number" },
+        "bodyFatPercentage": { "type": "number" },
+        "activityLevel": { "type": "string", "enum": ["sedentary", "light", "moderate", "active", "very_active"] },
+        "goal": { "type": "string", "enum": ["cutting", "bulking", "recomposition", "strength", "endurance", "general"] },
+        "experienceLevel": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+        "equipmentAvailable": { "type": "string" },
+        "targetDailyCalories": { "type": "integer" },
+        "targetDailyProtein": { "type": "integer" },
+        "targetDailyCarbs": { "type": "integer" },
+        "targetDailyFat": { "type": "integer" },
+        "targetDailyHydrationMl": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "goal"]
+    },
+    "WeightLog": {
+      "title": "Weight Log",
+      "description": "Tracking weight over time",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "weightKg": { "type": "number" },
+        "bodyFatPercentage": { "type": "number" }
+      },
+      "required": ["userId", "date", "weightKg"]
+    },
+    "WorkoutLog": {
+      "title": "Workout Log",
+      "description": "Historical workout data",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "routineName": { "type": "string" },
+        "exercises": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "notes": { "type": "string" }
+      },
+      "required": ["userId", "date"]
+    },
+    "NutritionLog": {
+      "title": "Nutrition Log",
+      "description": "Daily caloric and macro intake",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "mealName": { "type": "string" },
+        "calories": { "type": "integer" },
+        "protein": { "type": "integer" },
+        "carbs": { "type": "integer" },
+        "fat": { "type": "integer" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "mealName"]
+    },
+    "HydrationLog": {
+      "title": "Hydration Log",
+      "description": "Water intake tracking",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "amountMl": { "type": "integer" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "amountMl"]
+    }
+  },
+  "firestore": {
+    "/user_profiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user profiles"
+    },
+    "/weight_logs/{logId}": {
+      "schema": "WeightLog",
+      "description": "Weight history records"
+    },
+    "/workout_logs/{logId}": {
+      "schema": "WorkoutLog",
+      "description": "Exercise and routine history"
+    },
+    "/nutrition_logs/{logId}": {
+      "schema": "NutritionLog",
+      "description": "Food and meal intake tracking"
+    },
+    "/hydration_logs/{logId}": {
+      "schema": "HydrationLog",
+      "description": "Water intake records"
+    }
+  }
+}

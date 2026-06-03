@@ -1,0 +1,6 @@
+{
+  "name": "ForgeFit",
+  "description": "Premium AI-powered fitness intelligence for personalized coaching, nutrition analysis, and performance tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- User Profile Validation ---
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'name', 'goal']) &&
+             data.userId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             (data.goal == '' || data.goal in ['cutting', 'bulking', 'recomposition', 'strength', 'endurance', 'general']) &&
+             (data.get('age', null) == null || data.age is int) &&
+             (data.get('weightKg', null) == null || data.weightKg is number) &&
+             (data.get('bodyFatPercentage', null) == null || data.bodyFatPercentage is number) &&
+             (data.get('createdAt', null) == null || data.createdAt is string);
+    }
+
+    // --- Weight Log Validation ---
+    function isValidWeightLog(data) {
+      return data.keys().hasAll(['userId', 'date', 'weightKg']) &&
+             data.userId == request.auth.uid &&
+             data.date is string && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+             data.weightKg is number && data.weightKg > 0 && data.weightKg < 1000 &&
+             (data.get('bodyFatPercentage', null) == null || data.bodyFatPercentage is number || data.bodyFatPercentage == null);
+    }
+
+    // --- Workout Log Validation ---
+    function isValidWorkoutLog(data) {
+      return data.keys().hasAll(['userId', 'date', 'routineName', 'exercises']) &&
+             data.userId == request.auth.uid &&
+             data.routineName is string && data.routineName.size() <= 200 &&
+             data.exercises is list && data.exercises.size() <= 50;
+    }
+
+    // --- Nutrition Log Validation ---
+    function isValidNutritionLog(data) {
+      return data.keys().hasAll(['userId', 'date', 'mealName', 'calories', 'protein', 'carbs', 'fat']) &&
+             data.userId == request.auth.uid &&
+             data.mealName is string && data.mealName.size() <= 200 &&
+             data.calories is int && data.calories >= 0 &&
+             data.protein is int && data.protein >= 0 &&
+             data.carbs is int && data.carbs >= 0 &&
+             data.fat is int && data.fat >= 0;
+    }
+
+    // --- Hydration Log Validation ---
+    function isValidHydrationLog(data) {
+      return data.keys().hasAll(['userId', 'date', 'amountMl']) &&
+             data.userId == request.auth.uid &&
+             data.amountMl is int && data.amountMl > 0 && data.amountMl < 20000;
+    }
+
+    match /user_profiles/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && request.auth.uid == userId && isValidUserProfile(incoming());
+    }
+
+    match /weight_logs/{logId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidWeightLog(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidWeightLog(incoming());
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    match /workout_logs/{logId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidWorkoutLog(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidWorkoutLog(incoming());
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    match /nutrition_logs/{logId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidNutritionLog(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidNutritionLog(incoming());
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    match /hydration_logs/{logId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidHydrationLog(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidHydrationLog(incoming());
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+  }
+}
