@@ -149,7 +149,7 @@ app.post("/api/nutrition/analyze", async (req, res) => {
       }
     }));
 
-    res.json(JSON.parse(response.text));
+    res.json(JSON.parse(response.text || "{}"));
   } catch (error: any) {
     console.error("Nutrition Analysis Error:", error);
     res.status(500).json({ 
@@ -192,7 +192,7 @@ app.post("/api/workouts/generate", async (req, res) => {
       }
     }));
 
-    res.json(JSON.parse(response.text));
+    res.json(JSON.parse(response.text || "{}"));
   } catch (error: any) {
     console.error("Workout Generation Error:", error);
     res.status(500).json({ 
@@ -224,3 +224,6 @@ async function setupVite() {
 }
 
 setupVite();
+
+
+export default app;
