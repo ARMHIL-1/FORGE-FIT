@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "cleanUrls": true,
+  "builds": [
+    {
+      "src": "dist/server.cjs",
+      "use": "@vercel/node"
+    }
+  ],
   "rewrites": [
     {
-      "source": "/api/coach/chat",
-      "destination": "/api/coach/chat.ts"
+      "source": "/api/(.*)",
+      "destination": "dist/server.cjs"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
